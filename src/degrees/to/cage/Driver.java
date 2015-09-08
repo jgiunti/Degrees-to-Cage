@@ -5,6 +5,7 @@
  */
 package degrees.to.cage;
 
+import degrees.to.cage.Tree.Node;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
@@ -21,9 +22,10 @@ public class Driver {
     static Tree<String> linkTree;
     
     public static void main(String[] args) throws IOException {
-        DegreesToCage deg = new DegreesToCage("https://en.wikipedia.org/wiki/Madonna_in_the_Church", "National Gallery");
+        DegreesToCage deg = new DegreesToCage("https://en.wikipedia.org/wiki/Nicolas_Cage", "Bram Stoker's Dracula");
         try {
-            deg.driver();       
+            Node<String> found = deg.driver();
+            System.out.println(found.data);
         } catch (SocketTimeoutException ex) {
             Logger.getLogger(DegreesToCage.class.getName()).log(Level.SEVERE, null, ex);
         }

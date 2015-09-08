@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,45 +30,58 @@ public class DegreesToCage {
     Cleaner scrubber;
     static Tree<String> linkTree;
     static Node<String> root;
+    HashMap<String, String> upcoming = new HashMap<>();
     HashMap<String, String> visited = new HashMap<>();
-    boolean found = false;
     String searchTerm;
+    boolean found;
+    Node<String> foundNode = null;
+    Document page;
     
-    public void driver() throws IOException{
-        while(!found){
-            Node<String> baseNode = root;
-            while(baseNode.hasChildren()){
-                baseNode = baseNode.getChild(0);
-            }         
-            //int lvl1 = root.parent.parent.children.size();
-            if(baseNode == root){
-                addChildren(root);
-                driver();
-            }
-            if(baseNode.parent == root){
-                Queue<Node<String>> lvl1Q = new LinkedList<>(root.children);
-                while(!lvl1Q.isEmpty()){
-                    Node<String> bottomNode = lvl1Q.poll();
-                    addChildren(bottomNode);                      
+    public Node<String> driver() throws IOException{
+        Node<String> baseNode = root;
+        while(baseNode.hasChildren()){
+            baseNode = baseNode.getChild(0);
+        }         
+        //int lvl1 = root.parent.parent.children.size();
+        if(checkHeading(baseNode)){
+            return foundNode;
+        }
+        if(baseNode == root){
+            addChildren(root);
+            foundNode = driver();
+        }
+        if(baseNode.parent == root && found == false){
+            Queue<Node<String>> lvl1Q = new LinkedList<>(root.children);
+            while(!lvl1Q.isEmpty()){
+                Node<String> bottomNode = lvl1Q.poll();
+                if(!visited.containsKey(bottomNode.data));{
+                    if(checkHeading(bottomNode)){
+                        return foundNode;
+                    }
+                    addChildren(bottomNode); 
                 }
-                driver();
+
             }
-            else{
-                Queue<Node<String>> lvl1Q = new LinkedList<>(root.parent.parent.children);
-                while(!lvl1Q.isEmpty()){
-                    Node<String> thisNode = lvl1Q.poll();
-                    Queue<Node<String>> lvl2Q = new LinkedList<>(thisNode.children);
-                    while(!lvl2Q.isEmpty()){
-                        Node<String> bottomNode = lvl2Q.poll();
-                        addChildren(bottomNode);                
+            foundNode = driver();
+        }
+        else if(found == false){
+            Queue<Node<String>> lvl1Q = new LinkedList<>(baseNode.parent.parent.children);
+            while(!lvl1Q.isEmpty()){
+                Node<String> thisNode = lvl1Q.poll();
+                Queue<Node<String>> lvl2Q = new LinkedList<>(thisNode.children);
+                while(!lvl2Q.isEmpty()){
+                    Node<String> bottomNode = lvl2Q.poll();
+                    if(!visited.containsKey(bottomNode.data));{
+                        if(checkHeading(bottomNode)){
+                            return foundNode;
+                        }
+                        addChildren(bottomNode);  
                     }
                 }
-                driver();          
-            }                               
+            }
+            foundNode = driver();          
         }
-        
-        
-        
+        return foundNode;
     }
     
     public DegreesToCage(String URL, String search){
@@ -79,23 +91,38 @@ public class DegreesToCage {
         searchTerm = search;
     }
     
-    public void addChildren(Node<String> node) throws IOException{
-        Document page = getPage(node.getData());
+    public Boolean checkHeading(Node<String> node) throws IOException{
+        page = getPage(node.getData());
         String heading = getHeading(page);
         System.out.println(heading);
-        if(heading.equals(searchTerm)){
+        //System.out.println(node.getData());
+        if(heading.equals(searchTerm)){           
+            foundNode = node;
             found = true;
+            return true;
         }
+        else{
+            found = false;
+            return false;
+        }
+    }
+    
+    public void addChildren(Node<String> node) throws IOException{
+        found = false;     
         Elements links = getLinks(page);
         links.stream().map((link) -> {
             Node<String> newNode = new Node();
             newNode.data = link.attr("abs:href");
             return newNode;
         }).forEach((newNode) -> {
-            newNode.parent = node;
-            newNode.children = new ArrayList<>();
-            node.children.add(newNode);
+            if(!upcoming.containsKey(newNode.data)){
+                newNode.parent = node;
+                newNode.children = new ArrayList<>();
+                node.children.add(newNode);
+                upcoming.put(newNode.getData(), "");
+            }           
         });
+        visited.put(node.data, "");
     }
     
     public static Document getPage(String url) throws IOException{        
@@ -108,7 +135,7 @@ public class DegreesToCage {
         Elements content = page.select("[id=mw-content-text]");
         Elements links = content.select("a[href^=/wiki]:not(a[href^=/wiki/File])"
                 + ":not(a[href^=/wiki/Wikipedia]):not(a[href^=/wiki/Help]):not(a[href^=/wiki/Talk])"
-                + ":not(a[href^=/wiki/Portal])");
+                + ":not(a[href^=/wiki/Portal]):not(a[href^=/wiki/Special:]");
         return links;
     }
     
