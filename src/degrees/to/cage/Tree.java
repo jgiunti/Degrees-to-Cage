@@ -19,12 +19,30 @@ public class Tree<T> {
         root = new Node<T>();
         root.data = rootData;
         root.children = new ArrayList<Node<T>>();
+        root.next = null;
     }
 
     public static class Node<T> {
-        private T data;
-        private Node<T> parent;
-        private List<Node<T>> children;
+        public T data;
+        public Node<T> parent;
+        public Node<T> next;
+        public List<Node<T>> children;
+        
+        public boolean hasChildren(){
+            return children.size() > 0;
+        }
+        
+        public Node<T> getChild(int i){
+            return children.get(i);
+        }
+        
+        public T getData(){
+            return data;
+        }
     }
+    
+    public Node<T> getRoot(){
+        return root;
+    }    
     
 }
