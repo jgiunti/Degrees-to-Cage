@@ -22,7 +22,7 @@ public class Driver {
     static Tree<String> linkTree;
     
     public static void main(String[] args) throws IOException {
-        DegreesToCage deg = new DegreesToCage("https://en.wikipedia.org/wiki/Nicolas_Cage", "Bram Stoker's Dracula");
+        DegreesToCage deg = new DegreesToCage("https://en.wikipedia.org/wiki/Nicolas_Cage", "German American");
         try {
             Node<String> found = deg.driver();
             System.out.println(found.data);

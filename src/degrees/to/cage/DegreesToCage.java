@@ -43,28 +43,25 @@ public class DegreesToCage {
             baseNode = baseNode.getChild(0);
         }         
         //int lvl1 = root.parent.parent.children.size();
-        if(checkHeading(baseNode)){
+        if(found){
             return foundNode;
         }
         if(baseNode == root){
             addChildren(root);
             foundNode = driver();
         }
-        if(baseNode.parent == root && found == false){
+        if(baseNode.parent == root && !found){
             Queue<Node<String>> lvl1Q = new LinkedList<>(root.children);
             while(!lvl1Q.isEmpty()){
                 Node<String> bottomNode = lvl1Q.poll();
-                if(!visited.containsKey(bottomNode.data));{
-                    if(checkHeading(bottomNode)){
-                        return foundNode;
-                    }
+                if(!visited.containsKey(bottomNode.data));{                   
                     addChildren(bottomNode); 
                 }
 
             }
             foundNode = driver();
         }
-        else if(found == false){
+        else if(!found){
             Queue<Node<String>> lvl1Q = new LinkedList<>(baseNode.parent.parent.children);
             while(!lvl1Q.isEmpty()){
                 Node<String> thisNode = lvl1Q.poll();
@@ -72,9 +69,6 @@ public class DegreesToCage {
                 while(!lvl2Q.isEmpty()){
                     Node<String> bottomNode = lvl2Q.poll();
                     if(!visited.containsKey(bottomNode.data));{
-                        if(checkHeading(bottomNode)){
-                            return foundNode;
-                        }
                         addChildren(bottomNode);  
                     }
                 }
@@ -108,7 +102,7 @@ public class DegreesToCage {
     }
     
     public void addChildren(Node<String> node) throws IOException{
-        found = false;     
+        checkHeading(node);
         Elements links = getLinks(page);
         links.stream().map((link) -> {
             Node<String> newNode = new Node();
@@ -116,6 +110,11 @@ public class DegreesToCage {
             return newNode;
         }).forEach((newNode) -> {
             if(!upcoming.containsKey(newNode.data)){
+                if(newNode.data.equalsIgnoreCase("https://en.wikipedia.org/wiki/German_American")){
+                    found = true;
+                    newNode.parent = node;
+                    foundNode = newNode;
+                }
                 newNode.parent = node;
                 newNode.children = new ArrayList<>();
                 node.children.add(newNode);
