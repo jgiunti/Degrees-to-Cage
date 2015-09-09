@@ -12,37 +12,18 @@ import java.util.List;
  *
  * @author Joe
  */
-public class Tree<T> {
-    private Node<T> root;
-
-    public Tree(T rootData) {
-        root = new Node<T>();
-        root.data = rootData;
-        root.children = new ArrayList<Node<T>>();
-        root.next = null;
-    }
-
-    public static class Node<T> {
-        public T data;
-        public Node<T> parent;
-        public Node<T> next;
-        public List<Node<T>> children;
-        
-        public boolean hasChildren(){
-            return children.size() > 0;
-        }
-        
-        public Node<T> getChild(int i){
-            return children.get(i);
-        }
-        
-        public T getData(){
-            return data;
-        }
+public class Node<T> {
+    
+    public T data;
+    public Node<T> parent;
+    public Node<T> next;
+    public List<Node<T>> children = new ArrayList<>();
+    
+    public boolean hasChildren(){
+        return children.size() > 0;
     }
     
-    public Node<T> getRoot(){
-        return root;
-    }    
-    
+    public Node<T> addChild(Node<T> child){
+        this.children.add(child);
+    }
 }
