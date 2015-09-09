@@ -7,13 +7,13 @@ package degrees.to.cage;
 
 import degrees.to.cage.Tree.Node;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Queue;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jsoup.parser.Tag;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
@@ -28,17 +28,32 @@ public class DegreesToCage {
      * @param args the command line arguments
      */
     Cleaner scrubber;
-    static Tree<String> linkTree;
-    static Node<String> root;
+    static Tree<Elements> linkTree;
+    static Element root;
     HashMap<String, String> upcoming = new HashMap<>();
     HashMap<String, String> visited = new HashMap<>();
     String searchTerm;
     boolean found;
     Node<String> foundNode = null;
     Document page;
+    Elements linklvl;
+    Deque<Elements> stack;
+    Deque<Elements> nextStack;
     
-    public Node<String> driver() throws IOException{
-        Node<String> baseNode = root;
+    public void driver() throws IOException{
+    	while(stack.peek() != null){
+            linklvl = stack.pop();
+            for(int i = 0; i < linklvl.size(); i++){
+                    Element thisElement = linklvl.get(i);
+                    page = getPage(thisElement.attr("abs:href"));
+                    Elements links = getLinks(page, thisElement);
+                    nextStack.push(links);
+            }
+        }
+        stack = nextStack;
+        driver();
+       
+        /*Node<String> baseNode = root;
         while(baseNode.hasChildren()){
             baseNode = baseNode.getChild(0);
         }         
@@ -75,14 +90,19 @@ public class DegreesToCage {
             }
             foundNode = driver();          
         }
-        return foundNode;
+        return foundNode;*/
     }
     
-    public DegreesToCage(String URL, String search){
+    public DegreesToCage(String URL, String search) throws IOException{
         scrubber = new Cleaner(Whitelist.basicWithImages());  
-        Tree<String> linkTree = new Tree(URL);
-        root = linkTree.getRoot();
+        Document page = getPage(URL);
+        Element starter = new Element(Tag.valueOf("a"), URL);
+        linklvl = getLinks(page, starter);
+        //root = linklvl.first();
         searchTerm = search;
+        stack = new ArrayDeque<Elements>();
+        nextStack = new ArrayDeque<Elements>();
+        stack.push(linklvl);
     }
     
     public Boolean checkHeading(Node<String> node) throws IOException{
@@ -102,9 +122,8 @@ public class DegreesToCage {
     }
     
     public void addChildren(Node<String> node) throws IOException{
-        checkHeading(node);
-        Elements links = getLinks(page);
-        links.stream().map((link) -> {
+     
+        /*links.stream().map((link) -> {
             Node<String> newNode = new Node();
             newNode.data = link.attr("abs:href");
             return newNode;
@@ -120,7 +139,7 @@ public class DegreesToCage {
                 node.children.add(newNode);
                 upcoming.put(newNode.getData(), "");
             }           
-        });
+        });*/
         visited.put(node.data, "");
     }
     
@@ -130,11 +149,26 @@ public class DegreesToCage {
         return page;                            
     }
     
-    public static Elements getLinks(Document page){
+    public static Elements getLinks(Document page, Element parentElement){
         Elements content = page.select("[id=mw-content-text]");
         Elements links = content.select("a[href^=/wiki]:not(a[href^=/wiki/File])"
                 + ":not(a[href^=/wiki/Wikipedia]):not(a[href^=/wiki/Help]):not(a[href^=/wiki/Talk])"
                 + ":not(a[href^=/wiki/Portal]):not(a[href^=/wiki/Special:]");
+        for(int i = 0; i < links.size(); i++){
+        	Element child = links.get(i);
+        	parentElement.appendChild(child);
+        	if(child.attr("abs:href").equals("https://en.wikipedia.org/wiki/Casino")){
+                        StringBuilder sb = new StringBuilder();
+                        sb.append(child.baseUri());
+                        Element temp = child.parent();
+                        while(temp.parent() != null){
+                            sb.append(" ");
+                            sb.append(temp.baseUri());
+                            temp = temp.parent();
+                        }
+                        System.out.println(sb.toString());      		
+        	}
+        }
         return links;
     }
     

@@ -24,8 +24,8 @@ public class Driver {
     public static void main(String[] args) throws IOException {
         DegreesToCage deg = new DegreesToCage("https://en.wikipedia.org/wiki/Nicolas_Cage", "German American");
         try {
-            Node<String> found = deg.driver();
-            System.out.println(found.data);
+            deg.driver();
+            //System.out.println(found.data);
         } catch (SocketTimeoutException ex) {
             Logger.getLogger(DegreesToCage.class.getName()).log(Level.SEVERE, null, ex);
         }
