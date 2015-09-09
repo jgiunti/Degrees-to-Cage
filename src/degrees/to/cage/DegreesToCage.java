@@ -115,11 +115,11 @@ public class DegreesToCage {
                 + ":not(a[href^=/wiki/Portal]):not(a[href^=/wiki/Special:]");
         for (Element child : links) {
             parentElement.appendChild(child);
-            String childURL = child.attr("href");
             if (visited.containsKey(child.attr("abs:href"))){
-                    links = links.not("a[href^=" + childURL + "]");
+                    links = links.not("a[href^=" + child.attr("abs:href") + "]");
             }
-            if(childURL.equals("https://en.wikipedia.org/wiki/The_Wizard_of_Oz_(1939_film)")){
+            String childURL = child.attr("abs:href");
+            if(child.attr("abs:href").equals("https://en.wikipedia.org/wiki/Film_festival")){
                 
                 StringBuilder sb = new StringBuilder();
                 sb.append(child.baseUri());

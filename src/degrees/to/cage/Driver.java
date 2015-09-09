@@ -5,7 +5,6 @@
  */
 package degrees.to.cage;
 
-import degrees.to.cage.Tree.Node;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.util.logging.Level;
