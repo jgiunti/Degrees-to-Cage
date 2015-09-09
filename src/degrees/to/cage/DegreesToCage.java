@@ -3,17 +3,17 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package degrees.to.cage;
+package degreestocage;
 
-import degrees.to.cage.Tree.Node;
 import java.io.IOException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashMap;
+import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
-import org.jsoup.parser.Tag;
 import org.jsoup.safety.Cleaner;
 import org.jsoup.safety.Whitelist;
 import org.jsoup.select.Elements;
@@ -35,37 +35,41 @@ public class DegreesToCage {
     Node<String> foundNode = null;
     Document page;
     Elements linklvl;
-    Deque<Elements> stack;
-    Deque<Elements> nextStack;
+    Deque<Node<String>> stack;
+    List<Deque<Node<String>>> nextList;
+    List<Deque<Node<String>>> tempList;
     
-    public void driver() throws IOException{
-    	while(stack.peek() != null){
-            linklvl = stack.pop();
-            for (Element thisElement : linklvl) {
-                page = getPage(thisElement.attr("abs:href"));
-                Elements links = getLinks(page, thisElement);
-                nextStack.push(links);
-            }
+    public void driver() throws IOException{	
+        nextList = tempList;
+        while (!nextList.isEmpty()){
+            stack = nextList.remove(0);
+            while(stack.peek() != null){
+                Node<String> thisElement = stack.pop();               
+                page = getPage(thisElement.data);
+                getLinks(page, thisElement);               
+            }          
         }
-        stack = nextStack;
+        
         driver();
     }
     
     public DegreesToCage(String URL, String search) throws IOException{
         scrubber = new Cleaner(Whitelist.basicWithImages());
-        visited = new HashMap<>();
-        Document page = getPage(URL);
-        Element starter = new Element(Tag.valueOf("a"), URL);
-        linklvl = getLinks(page, starter);
         searchTerm = search;
         stack = new ArrayDeque<>();
-        nextStack = new ArrayDeque<>();
-        stack.push(linklvl);
+        nextList = new ArrayList<>();
+        tempList = new ArrayList<>();
+        visited = new HashMap<>();
+        Document page = getPage(URL);
+        Node<String> rootNode = new Node<>();
+        rootNode.data = URL;
+        getLinks(page, rootNode);
+        
        
     }
     
     public Boolean checkHeading(Node<String> node) throws IOException{
-        page = getPage(node.getData());
+
         String heading = getHeading(page);
         System.out.println(heading);
         if(heading.equals(searchTerm)){           
@@ -108,31 +112,37 @@ public class DegreesToCage {
         return page;                            
     }
     
-    public Elements getLinks(Document page, Element parentElement){
+    public void getLinks(Document page, Node<String> parentNode){
+        tempList.clear();
+        Deque<Node<String>> tempStack = new ArrayDeque<>();       
         Elements content = page.select("[id=mw-content-text]");
         Elements links = content.select("a[href^=/wiki]:not(a[href^=/wiki/File])"
                 + ":not(a[href^=/wiki/Wikipedia]):not(a[href^=/wiki/Help]):not(a[href^=/wiki/Talk])"
                 + ":not(a[href^=/wiki/Portal]):not(a[href^=/wiki/Special:]");
-        for (Element child : links) {
-            parentElement.appendChild(child);
+        for (Element child : links) { //convert these elements to Node<String> to save memory       
             if (visited.containsKey(child.attr("abs:href"))){
                     links = links.not("a[href^=" + child.attr("abs:href") + "]");
+                    continue;
             }
-            String childURL = child.attr("abs:href");
-            if(child.attr("abs:href").equals("https://en.wikipedia.org/wiki/Film_festival")){
-                
+            Node<String> childLink = new Node<>();           
+            childLink.parent = parentNode;
+            childLink.data = child.attr("abs:href");
+            parentNode.addChild(childLink);
+            tempStack.add(childLink);
+            if(childLink.data.equals("https://en.wikipedia.org/wiki/Red_Rock_West")){               
                 StringBuilder sb = new StringBuilder();
                 sb.append(child.baseUri());
-                Element temp = child.parent();
-                while(temp.parent() != null){
+                Node<String> temp = childLink.parent;
+                while(temp.parent != null){
                     sb.append(" ");
-                    sb.append(temp.baseUri());
-                    temp = temp.parent();
+                    sb.append(temp.data);
+                    temp = temp.parent;
                 }
                 System.out.println(sb.toString());
             }
         }
-        return links;
+        tempList.add(tempStack);
+        links.clear();
     }
     
     public static String getHeading(Document page){
