@@ -28,8 +28,6 @@ public class DegreesToCage {
      * @param args the command line arguments
      */
     Cleaner scrubber;
-    static Tree<Elements> linkTree;
-    static Element root;
     HashMap<String, String> upcoming = new HashMap<>();
     HashMap<String, String> visited = new HashMap<>();
     String searchTerm;
@@ -43,54 +41,14 @@ public class DegreesToCage {
     public void driver() throws IOException{
     	while(stack.peek() != null){
             linklvl = stack.pop();
-            for(int i = 0; i < linklvl.size(); i++){
-                    Element thisElement = linklvl.get(i);
-                    page = getPage(thisElement.attr("abs:href"));
-                    Elements links = getLinks(page, thisElement);
-                    nextStack.push(links);
+            for (Element thisElement : linklvl) {
+                page = getPage(thisElement.attr("abs:href"));
+                Elements links = getLinks(page, thisElement);
+                nextStack.push(links);
             }
         }
         stack = nextStack;
         driver();
-       
-        /*Node<String> baseNode = root;
-        while(baseNode.hasChildren()){
-            baseNode = baseNode.getChild(0);
-        }         
-        //int lvl1 = root.parent.parent.children.size();
-        if(found){
-            return foundNode;
-        }
-        if(baseNode == root){
-            addChildren(root);
-            foundNode = driver();
-        }
-        if(baseNode.parent == root && !found){
-            Queue<Node<String>> lvl1Q = new LinkedList<>(root.children);
-            while(!lvl1Q.isEmpty()){
-                Node<String> bottomNode = lvl1Q.poll();
-                if(!visited.containsKey(bottomNode.data));{                   
-                    addChildren(bottomNode); 
-                }
-
-            }
-            foundNode = driver();
-        }
-        else if(!found){
-            Queue<Node<String>> lvl1Q = new LinkedList<>(baseNode.parent.parent.children);
-            while(!lvl1Q.isEmpty()){
-                Node<String> thisNode = lvl1Q.poll();
-                Queue<Node<String>> lvl2Q = new LinkedList<>(thisNode.children);
-                while(!lvl2Q.isEmpty()){
-                    Node<String> bottomNode = lvl2Q.poll();
-                    if(!visited.containsKey(bottomNode.data));{
-                        addChildren(bottomNode);  
-                    }
-                }
-            }
-            foundNode = driver();          
-        }
-        return foundNode;*/
     }
     
     public DegreesToCage(String URL, String search) throws IOException{
@@ -98,10 +56,9 @@ public class DegreesToCage {
         Document page = getPage(URL);
         Element starter = new Element(Tag.valueOf("a"), URL);
         linklvl = getLinks(page, starter);
-        //root = linklvl.first();
         searchTerm = search;
-        stack = new ArrayDeque<Elements>();
-        nextStack = new ArrayDeque<Elements>();
+        stack = new ArrayDeque<>();
+        nextStack = new ArrayDeque<>();
         stack.push(linklvl);
     }
     
@@ -109,7 +66,6 @@ public class DegreesToCage {
         page = getPage(node.getData());
         String heading = getHeading(page);
         System.out.println(heading);
-        //System.out.println(node.getData());
         if(heading.equals(searchTerm)){           
             foundNode = node;
             found = true;
@@ -154,20 +110,19 @@ public class DegreesToCage {
         Elements links = content.select("a[href^=/wiki]:not(a[href^=/wiki/File])"
                 + ":not(a[href^=/wiki/Wikipedia]):not(a[href^=/wiki/Help]):not(a[href^=/wiki/Talk])"
                 + ":not(a[href^=/wiki/Portal]):not(a[href^=/wiki/Special:]");
-        for(int i = 0; i < links.size(); i++){
-        	Element child = links.get(i);
-        	parentElement.appendChild(child);
-        	if(child.attr("abs:href").equals("https://en.wikipedia.org/wiki/Casino")){
-                        StringBuilder sb = new StringBuilder();
-                        sb.append(child.baseUri());
-                        Element temp = child.parent();
-                        while(temp.parent() != null){
-                            sb.append(" ");
-                            sb.append(temp.baseUri());
-                            temp = temp.parent();
-                        }
-                        System.out.println(sb.toString());      		
-        	}
+        for (Element child : links) {
+            parentElement.appendChild(child);
+            if(child.attr("abs:href").equals("https://en.wikipedia.org/wiki/Casino")){
+                StringBuilder sb = new StringBuilder();
+                sb.append(child.baseUri());
+                Element temp = child.parent();
+                while(temp.parent() != null){
+                    sb.append(" ");
+                    sb.append(temp.baseUri());
+                    temp = temp.parent();
+                }
+                System.out.println(sb.toString());
+            }
         }
         return links;
     }
