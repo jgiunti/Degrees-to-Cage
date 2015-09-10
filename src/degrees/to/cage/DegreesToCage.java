@@ -118,8 +118,9 @@ public class DegreesToCage {
         Elements content = page.select("[id=mw-content-text]");
         Elements links = content.select("a[href^=/wiki]:not(a[href^=/wiki/File])"
                 + ":not(a[href^=/wiki/Wikipedia]):not(a[href^=/wiki/Help]):not(a[href^=/wiki/Talk])"
-                + ":not(a[href^=/wiki/Portal]):not(a[href^=/wiki/Special:]");
+                + ":not(a[href^=/wiki/Portal]):not(a[href^=/wiki/Special:]):not(a[href^=/wiki/Template:])");
         for (Element child : links) { //convert these elements to Node<String> to save memory       
+            //System.out.println(child.toString());
             if (visited.containsKey(child.attr("abs:href"))){
                     links = links.not("a[href^=" + child.attr("abs:href") + "]");
                     continue;
@@ -129,9 +130,10 @@ public class DegreesToCage {
             childLink.data = child.attr("abs:href");
             parentNode.addChild(childLink);
             tempStack.add(childLink);
-            if(childLink.data.equals("https://en.wikipedia.org/wiki/Red_Rock_West")){               
+            if(childLink.data.equals("https://en.wikipedia.org/wiki/Sandpaper")){               
+                foundNode = childLink;
                 StringBuilder sb = new StringBuilder();
-                sb.append(child.baseUri());
+                sb.append(childLink.data);
                 Node<String> temp = childLink.parent;
                 while(temp.parent != null){
                     sb.append(" ");
@@ -139,6 +141,7 @@ public class DegreesToCage {
                     temp = temp.parent;
                 }
                 System.out.println(sb.toString());
+                System.exit(0);
             }
         }
         tempList.add(tempStack);
