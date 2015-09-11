@@ -41,7 +41,7 @@ public class DegreesToCage {
         visited = new HashMap<>();       
     }
       
-    public Document getPage(String url) throws IOException, InterruptedException{ 
+    public Document GetPage(String url) throws IOException, InterruptedException{ 
         Thread.sleep(1000); 
         Document thisPage = Jsoup.connect(url).timeout(10*1000).get();
         thisPage.setBaseUri(url);
@@ -50,14 +50,14 @@ public class DegreesToCage {
         return thisPage;                            
     }
     
-    public Node<String> getLinks(Node<String> rootNode) throws IOException, InterruptedException{                
+    public Node<String> Search(Node<String> rootNode) throws IOException, InterruptedException{                
         queue.add((rootNode));
         while(queue.peek() != null){
             Node<String> thisNode = queue.poll();
             while (visited.containsKey(thisNode.data)){
                 thisNode = queue.poll();
             }
-            page = getPage(thisNode.data);
+            page = GetPage(thisNode.data);
             Elements content = page.select("[id=mw-content-text]");
             Elements links = content.select("a[href^=/wiki]:not(a[href^=/wiki/File])"
                     + ":not(a[href^=/wiki/Wikipedia]):not(a[href^=/wiki/Help]):not(a[href^=/wiki/Talk])"
