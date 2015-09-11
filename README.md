@@ -1,2 +1,2 @@
 # Degrees-to-Cage
-This is an infinite loop so be careful.
+A breadth first search of the tree that is Wikipedia...
