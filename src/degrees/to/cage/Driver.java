@@ -18,13 +18,19 @@ import org.jsoup.safety.Cleaner;
 public class Driver {
     
     Cleaner scrubber;
-    static Tree<String> linkTree;
     
-    public static void main(String[] args) throws IOException {
-        DegreesToCage deg = new DegreesToCage("https://en.wikipedia.org/wiki/Nicolas_Cage", "German American");
+    public static void main(String[] args) throws IOException, InterruptedException {
+        DegreesToCage deg = new DegreesToCage();
         try {
-            deg.driver();
-            //System.out.println(found.data);
+            Node<String> node = new Node<String>();
+            node.data = "https://en.wikipedia.org/wiki/Nicolas_Cage";
+            Node<String> found = deg.getLinks(node);
+            StringBuilder sb = new StringBuilder();
+            while(found.parent != null){
+                sb.append((found.data));
+                found = found.parent;
+            }
+            System.out.println(sb.toString());
         } catch (SocketTimeoutException ex) {
             Logger.getLogger(DegreesToCage.class.getName()).log(Level.SEVERE, null, ex);
         }
