@@ -24,7 +24,7 @@ public class Driver {
         try {
             Node<String> node = new Node<String>();
             node.data = "https://en.wikipedia.org/wiki/Nicolas_Cage";
-            Node<String> found = deg.getLinks(node);
+            Node<String> found = deg.Search(node);
             StringBuilder sb = new StringBuilder();
             while(found.parent != null){
                 sb.append((found.data));
